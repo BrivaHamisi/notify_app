@@ -4,7 +4,6 @@ import 'package:notify_app/models/note_for_listing.dart';
 import 'package:notify_app/services/notes_service.dart';
 import 'package:notify_app/views/note_modify.dart';
 
-
 class NoteList extends StatefulWidget {
   const NoteList({Key? key}) : super(key: key);
 
@@ -15,6 +14,7 @@ class NoteList extends StatefulWidget {
 class _NoteListState extends State<NoteList> {
   NotesService get service => GetIt.I<NotesService>();
   List<NoteForListing> notes = [];
+  bool isLoading = true;
 
   String formatDate(DateTime dateTime) {
     return "${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
@@ -22,10 +22,42 @@ class _NoteListState extends State<NoteList> {
 
   @override
   void initState() {
-    notes = service.getNoteList();
     super.initState();
+    _fetchNotes();
   }
-  
+
+  // Future<void> _fetchNotes() async {
+  //   final response = await service.getNoteList();
+  //   setState(() {
+  //     if (!response.error && response.data != null) {
+  //       notes = response.data!;
+  //     }
+  //     isLoading = false;
+  //   });
+  // }\
+
+  Future<void> _fetchNotes() async {
+  print("Fetching notes..."); // Debug print
+  try {
+    final response = await service.getNoteList();
+    print("Response received: ${response.data}"); // Debug print
+    setState(() {
+      if (!response.error && response.data != null) {
+        notes = response.data!;
+        print("Notes updated: ${notes.length} notes"); // Debug print
+      } else {
+        print("Error or null data: ${response.error}"); // Debug print
+      }
+      isLoading = false;
+    });
+  } catch (e) {
+    print("Error fetching notes: $e"); // Debug print
+    setState(() {
+      isLoading = false;
+    });
+  }
+}
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,41 +76,52 @@ class _NoteListState extends State<NoteList> {
         centerTitle: false,
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
+        onPressed: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => NoteModify(
-                noteID: null,
-              ),
+              builder: (context) => const NoteModify(noteID: null),
             ),
           );
+          _fetchNotes(); // Refresh notes after returning from NoteModify
         },
         backgroundColor: Colors.blue[700],
         elevation: 2,
         child: const Icon(Icons.add, size: 30, color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: notes.length,
-          itemBuilder: (context, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12.0),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
-                      spreadRadius: 1,
-                      blurRadius: 10,
-                      offset: const Offset(0, 1),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : notes.isEmpty
+              ? Center(
+                  child: Text(
+                    'No notes available',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
                     ),
-                  ],
-                ),
-                child: Material(
+                  ),
+                )
+              : Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ListView.builder(
+                    itemCount: notes.length,
+                    itemBuilder: (context, index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.grey.withOpacity(0.1),
+                                spreadRadius: 1,
+                                blurRadius: 10,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Material(
                   color: Colors.transparent,
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
@@ -95,7 +138,7 @@ class _NoteListState extends State<NoteList> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  notes[index].noteTitle,
+                                  notes[index].title,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
@@ -118,7 +161,7 @@ class _NoteListState extends State<NoteList> {
                                         context,
                                         MaterialPageRoute(
                                           builder: (context) => NoteModify(
-                                            noteID: notes[index].noteID,
+                                            noteID: notes[index].id,
                                           ),
                                         ),
                                       );
@@ -197,14 +240,14 @@ class _NoteListState extends State<NoteList> {
                                                   ),
                                                 ),
                                                 onPressed: () {
-                                                  String noteToDeleteID =
-                                                      notes[index].noteID;
-                                                  notes.removeWhere((note) =>
-                                                      note.noteID ==
-                                                      noteToDeleteID);
-                                                  Navigator.of(context).pop();
-                                                  print(
-                                                      'Note with ID $noteToDeleteID deleted');
+                                                  // String noteToDeleteID =
+                                                  //     notes[index].id;
+                                                  // notes.removeWhere((note) =>
+                                                  //     note.id ==
+                                                  //     noteToDeleteID);
+                                                  // Navigator.of(context).pop();
+                                                  // print(
+                                                  //     'Note with ID $noteToDeleteID deleted');
                                                 },
                                                 child: const Text(
                                                   "Delete",
@@ -236,7 +279,7 @@ class _NoteListState extends State<NoteList> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            notes[index].noteContent,
+                            notes[index].content,
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -255,7 +298,7 @@ class _NoteListState extends State<NoteList> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                formatDate(notes[index].lasteditDateTime),
+                                formatDate(notes[index].updatedAt),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey[400],
@@ -269,10 +312,87 @@ class _NoteListState extends State<NoteList> {
                   ),
                 ),
               ),
-            );
-          },
-        ),
-      ),
+                      );
+                    },
+                  ),
+                ),
+    );
+  }
+
+  Future<void> _showDeleteDialog(int noteId) async {
+    return showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: const Text(
+            "Delete Note",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black87,
+            ),
+          ),
+          content: const Text(
+            "Are you sure you want to delete this note?",
+            style: TextStyle(
+              fontSize: 16,
+              color: Colors.black54,
+              height: 1.5,
+            ),
+          ),
+          backgroundColor: Colors.white,
+          elevation: 10,
+          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(
+                "Cancel",
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red[400],
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () async {
+                // Here you would call your delete service
+                // await service.deleteNote(noteId);
+                Navigator.of(context).pop();
+                await _fetchNotes(); // Refresh the list after deletion
+              },
+              child: const Text(
+                "Delete",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

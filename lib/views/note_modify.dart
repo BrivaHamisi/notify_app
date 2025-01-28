@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class NoteModify extends StatelessWidget {
-  final String? noteID;
+  final int? noteID;
   bool get isEditing => noteID != null;
 
   const NoteModify({Key? key, this.noteID}) : super(key: key);

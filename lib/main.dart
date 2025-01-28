@@ -5,7 +5,7 @@ import 'package:notify_app/views/note_list.dart';
 
 
 void setupServiceLocator() {
-  GetIt.I.registerLazySingleton<NotesService>(() => NotesService());
+  GetIt.I.registerLazySingleton(() => NotesService());
 }
 
 void main() {
