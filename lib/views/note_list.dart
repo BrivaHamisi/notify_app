@@ -107,10 +107,24 @@ class NoteList extends StatelessWidget {
                                 ),
                               ),
                               PopupMenuButton(
-                                icon: Icon(Icons.more_vert, color: Colors.grey[600]),
+                                icon: Icon(Icons.more_vert,
+                                    color: Colors.grey[600]),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
+                                onSelected: (String value) {
+                                  // Handle menu item selection here
+                                  switch (value) {
+                                    case 'edit':
+                                      // Add your edit logic here
+                                      print('Edit selected');
+                                      break;
+                                    case 'delete':
+                                      // Add your delete logic here
+                                      print('Delete selected');
+                                      break;
+                                  }
+                                },
                                 itemBuilder: (context) => [
                                   const PopupMenuItem(
                                     value: 'edit',
@@ -121,7 +135,7 @@ class NoteList extends StatelessWidget {
                                     child: Text('Delete'),
                                   ),
                                 ],
-                              ),
+                              )
                             ],
                           ),
                           const SizedBox(height: 8),
