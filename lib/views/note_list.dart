@@ -1,36 +1,31 @@
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:notify_app/models/note_for_listing.dart';
+import 'package:notify_app/services/notes_service.dart';
 import 'package:notify_app/views/note_modify.dart';
 
-class NoteList extends StatelessWidget {
-  final notes = [
-    NoteForListing(
-      "1",
-      "Note 1",
-      "Note Content 1",
-      DateTime.now(),
-      DateTime.now(),
-    ),
-    NoteForListing(
-      "2",
-      "Note 2",
-      "Note Content 2",
-      DateTime.now(),
-      DateTime.now(),
-    ),
-    NoteForListing(
-      "3",
-      "Note 3",
-      "Note Content 3",
-      DateTime.now(),
-      DateTime.now(),
-    ),
-  ];
+
+class NoteList extends StatefulWidget {
+  const NoteList({Key? key}) : super(key: key);
+
+  @override
+  State<NoteList> createState() => _NoteListState();
+}
+
+class _NoteListState extends State<NoteList> {
+  NotesService get service => GetIt.I<NotesService>();
+  List<NoteForListing> notes = [];
 
   String formatDate(DateTime dateTime) {
     return "${dateTime.day.toString().padLeft(2, '0')}/${dateTime.month.toString().padLeft(2, '0')}/${dateTime.year} ${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}";
   }
 
+  @override
+  void initState() {
+    notes = service.getNoteList();
+    super.initState();
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +48,9 @@ class NoteList extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const NoteModify(),
+              builder: (context) => NoteModify(
+                noteID: null,
+              ),
             ),
           );
         },
@@ -117,11 +114,110 @@ class NoteList extends StatelessWidget {
                                   switch (value) {
                                     case 'edit':
                                       // Add your edit logic here
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => NoteModify(
+                                            noteID: notes[index].noteID,
+                                          ),
+                                        ),
+                                      );
                                       print('Edit selected');
                                       break;
                                     case 'delete':
-                                      // Add your delete logic here
-                                      print('Delete selected');
+                                      showDialog(
+                                        context: context,
+                                        builder: (BuildContext context) {
+                                          return AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            title: const Text(
+                                              "Delete Note",
+                                              style: TextStyle(
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.black87,
+                                              ),
+                                            ),
+                                            content: const Text(
+                                              "Are you sure you want to delete this note?",
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                color: Colors.black54,
+                                                height: 1.5,
+                                              ),
+                                            ),
+                                            backgroundColor: Colors.white,
+                                            elevation: 10,
+                                            actionsPadding:
+                                                const EdgeInsets.symmetric(
+                                                    horizontal: 16,
+                                                    vertical: 12),
+                                            actions: [
+                                              TextButton(
+                                                style: TextButton.styleFrom(
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 10),
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text(
+                                                  "Cancel",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    color: Colors.grey[600],
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                              ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                  backgroundColor:
+                                                      Colors.red[400],
+                                                  foregroundColor: Colors.white,
+                                                  padding: const EdgeInsets
+                                                      .symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 10),
+                                                  elevation: 0,
+                                                  shape: RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            8),
+                                                  ),
+                                                ),
+                                                onPressed: () {
+                                                  String noteToDeleteID =
+                                                      notes[index].noteID;
+                                                  notes.removeWhere((note) =>
+                                                      note.noteID ==
+                                                      noteToDeleteID);
+                                                  Navigator.of(context).pop();
+                                                  print(
+                                                      'Note with ID $noteToDeleteID deleted');
+                                                },
+                                                child: const Text(
+                                                  "Delete",
+                                                  style: TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      );
                                       break;
                                   }
                                 },

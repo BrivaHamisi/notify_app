@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 
 class NoteModify extends StatelessWidget {
-  const NoteModify({super.key});
+  final String? noteID;
+  bool get isEditing => noteID != null;
+
+  const NoteModify({Key? key, this.noteID}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -9,9 +12,9 @@ class NoteModify extends StatelessWidget {
       appBar: AppBar(
         elevation: 0,
         backgroundColor: Colors.transparent,
-        title: const Text(
-          "Create Note",
-          style: TextStyle(
+        title: Text(
+          isEditing ? "Edit Note" : "Create Note",
+          style: const TextStyle(
             fontWeight: FontWeight.bold,
             color: Colors.black87,
           ),
@@ -72,8 +75,11 @@ class NoteModify extends StatelessWidget {
               child: ElevatedButton(
                 onPressed: () {
                   // TODO: Save the note to Firestore
-                  
-                  // and navigate back to the NotesList page
+                  if(isEditing){
+                    //update note in api
+                  }else{
+                    //creae note in api
+                  }
                   Navigator.pop(context);
                 },
                 style: ElevatedButton.styleFrom(
