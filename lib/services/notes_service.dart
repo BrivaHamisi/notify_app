@@ -38,7 +38,6 @@ Future<APIResponse<List<NoteForListing>>> getNoteList() async {
     return APIResponse<List<NoteForListing>>(error: true);
   }
 }
-
   // Get a single note
   Future<APIResponse<NoteForListing>> getNote(int noteId) async {
     try {
@@ -78,7 +77,7 @@ Future<APIResponse<List<NoteForListing>>> getNoteList() async {
         }),
       );
 
-      if (response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return APIResponse<bool>(data: true);
       }
       
@@ -130,7 +129,7 @@ Future<APIResponse<List<NoteForListing>>> getNoteList() async {
         headers: {'Content-Type': 'application/json'},
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 204) {
         return APIResponse<bool>(data: true);
       }
       

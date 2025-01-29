@@ -26,37 +26,28 @@ class _NoteListState extends State<NoteList> {
     _fetchNotes();
   }
 
-  // Future<void> _fetchNotes() async {
-  //   final response = await service.getNoteList();
-  //   setState(() {
-  //     if (!response.error && response.data != null) {
-  //       notes = response.data!;
-  //     }
-  //     isLoading = false;
-  //   });
-  // }\
-
   Future<void> _fetchNotes() async {
-  print("Fetching notes..."); // Debug print
-  try {
-    final response = await service.getNoteList();
-    print("Response received: ${response.data}"); // Debug print
-    setState(() {
-      if (!response.error && response.data != null) {
-        notes = response.data!;
-        print("Notes updated: ${notes.length} notes"); // Debug print
-      } else {
-        print("Error or null data: ${response.error}"); // Debug print
-      }
-      isLoading = false;
-    });
-  } catch (e) {
-    print("Error fetching notes: $e"); // Debug print
-    setState(() {
-      isLoading = false;
-    });
+    print("Fetching notes..."); // Debug print
+    try {
+      final response = await service.getNoteList();
+      print("Response received: ${response.data}"); // Debug print
+      setState(() {
+        if (!response.error && response.data != null) {
+          notes = response.data!;
+          notes.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+          print("Notes updated: ${notes.length} notes"); // Debug print
+        } else {
+          print("Error or null data: ${response.error}"); // Debug print
+        }
+        isLoading = false;
+      });
+    } catch (e) {
+      print("Error fetching notes: $e"); // Debug print
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -122,196 +113,107 @@ class _NoteListState extends State<NoteList> {
                             ],
                           ),
                           child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () {
-                      // Handle note tap
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Text(
-                                  notes[index].title,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                              ),
-                              PopupMenuButton(
-                                icon: Icon(Icons.more_vert,
-                                    color: Colors.grey[600]),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                onSelected: (String value) {
-                                  // Handle menu item selection here
-                                  switch (value) {
-                                    case 'edit':
-                                      // Add your edit logic here
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) => NoteModify(
-                                            noteID: notes[index].id,
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(12),
+                              onTap: () {
+                                // Handle note tap
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            notes[index].title,
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                              color: Colors.black87,
+                                            ),
                                           ),
                                         ),
-                                      );
-                                      print('Edit selected');
-                                      break;
-                                    case 'delete':
-                                      showDialog(
-                                        context: context,
-                                        builder: (BuildContext context) {
-                                          return AlertDialog(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
+                                        PopupMenuButton(
+                                          icon: Icon(Icons.more_vert,
+                                              color: Colors.grey[600]),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          onSelected: (String value) async {
+                                            // Added async here
+                                            switch (value) {
+                                              case 'edit':
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) =>
+                                                        NoteModify(
+                                                      noteID: notes[index].id,
+                                                    ),
+                                                  ),
+                                                );
+                                                print('Edit selected');
+                                                break;
+                                              case 'delete':
+                                                await _showDeleteDialog(
+                                                    notes[index].id);
+                                                break;
+                                            }
+                                          },
+                                          itemBuilder: (context) => [
+                                            const PopupMenuItem(
+                                              value: 'edit',
+                                              child: Text('Edit'),
                                             ),
-                                            title: const Text(
-                                              "Delete Note",
-                                              style: TextStyle(
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.black87,
-                                              ),
+                                            const PopupMenuItem(
+                                              value: 'delete',
+                                              child: Text('Delete'),
                                             ),
-                                            content: const Text(
-                                              "Are you sure you want to delete this note?",
-                                              style: TextStyle(
-                                                fontSize: 16,
-                                                color: Colors.black54,
-                                                height: 1.5,
-                                              ),
-                                            ),
-                                            backgroundColor: Colors.white,
-                                            elevation: 10,
-                                            actionsPadding:
-                                                const EdgeInsets.symmetric(
-                                                    horizontal: 16,
-                                                    vertical: 12),
-                                            actions: [
-                                              TextButton(
-                                                style: TextButton.styleFrom(
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 10),
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.of(context).pop();
-                                                },
-                                                child: Text(
-                                                  "Cancel",
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    color: Colors.grey[600],
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                              ElevatedButton(
-                                                style: ElevatedButton.styleFrom(
-                                                  backgroundColor:
-                                                      Colors.red[400],
-                                                  foregroundColor: Colors.white,
-                                                  padding: const EdgeInsets
-                                                      .symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 10),
-                                                  elevation: 0,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            8),
-                                                  ),
-                                                ),
-                                                onPressed: () {
-                                                  // String noteToDeleteID =
-                                                  //     notes[index].id;
-                                                  // notes.removeWhere((note) =>
-                                                  //     note.id ==
-                                                  //     noteToDeleteID);
-                                                  // Navigator.of(context).pop();
-                                                  // print(
-                                                  //     'Note with ID $noteToDeleteID deleted');
-                                                },
-                                                child: const Text(
-                                                  "Delete",
-                                                  style: TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      );
-                                      break;
-                                  }
-                                },
-                                itemBuilder: (context) => [
-                                  const PopupMenuItem(
-                                    value: 'edit',
-                                    child: Text('Edit'),
-                                  ),
-                                  const PopupMenuItem(
-                                    value: 'delete',
-                                    child: Text('Delete'),
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            notes[index].content,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey[600],
-                              height: 1.5,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                size: 14,
-                                color: Colors.grey[400],
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                formatDate(notes[index].updatedAt),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[400],
+                                          ],
+                                        )
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      notes[index].content,
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                        height: 1.5,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.access_time,
+                                          size: 14,
+                                          color: Colors.grey[400],
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          formatDate(notes[index].updatedAt),
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey[400],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+                        ),
                       );
                     },
                   ),
@@ -345,11 +247,13 @@ class _NoteListState extends State<NoteList> {
           ),
           backgroundColor: Colors.white,
           elevation: 10,
-          actionsPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           actions: [
             TextButton(
               style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -370,7 +274,8 @@ class _NoteListState extends State<NoteList> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red[400],
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
@@ -378,9 +283,26 @@ class _NoteListState extends State<NoteList> {
               ),
               onPressed: () async {
                 // Here you would call your delete service
+                try {
+                  final response = await service.deleteNote(noteId);
+                  if (!response.error) {
+                    Navigator.of(context).pop();
+                    await _fetchNotes(); // Refresh the list after deletion
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                          content: Text(response.errorMessage ??
+                              'An error occurred while deleting')),
+                    );
+                  }
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('An error occurred: $e')),
+                  );
+                }
                 // await service.deleteNote(noteId);
-                Navigator.of(context).pop();
-                await _fetchNotes(); // Refresh the list after deletion
+                // Navigator.of(context).pop();
+                // await _fetchNotes(); // Refresh the list after deletion
               },
               child: const Text(
                 "Delete",
