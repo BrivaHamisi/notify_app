@@ -18,39 +18,6 @@ class _NoteModifyState extends State<NoteModify> {
   
   final NotesService _notesService = NotesService();
 
-  // Future<void> _saveNote() async {
-  //   if (_titleController.text.isEmpty || _contentController.text.isEmpty) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       const SnackBar(content: Text('Please fill in all fields')),
-  //     );
-  //     return;
-  //   }
-
-  //   setState(() => _isLoading = true);
-
-  //   try {
-  //     final response = await _notesService.createNote(
-  //       _titleController.text,
-  //       _contentController.text,
-  //     );
-
-  //     if (response.error) {
-  //       ScaffoldMessenger.of(context).showSnackBar(
-  //         SnackBar(content: Text(response.errorMessage ?? 'An error occurred')),
-  //       );
-  //       return;
-  //     }
-
-  //     Navigator.pop(context, true);
-  //   } catch (e) {
-  //     ScaffoldMessenger.of(context).showSnackBar(
-  //       SnackBar(content: Text('An error occurred: $e')),
-  //     );
-  //   } finally {
-  //     setState(() => _isLoading = false);
-  //   }
-  // }
-
   Future<void> _saveNote() async {
   if (_titleController.text.isEmpty || _contentController.text.isEmpty) {
     ScaffoldMessenger.of(context).showSnackBar(
